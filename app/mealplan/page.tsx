@@ -1,5 +1,7 @@
 "use client"
 
+import { Spinner } from "@/components/spinner"
+import { useMutation } from "@tanstack/react-query"
 import { FormEvent } from "react"
 
 interface MealPlanInput {
@@ -11,7 +13,45 @@ interface MealPlanInput {
   days?: number
 }
 
+interface DailyMealPlan {
+  Breakfast?: string,
+  Lunch?: string,
+  Dinner?: string,
+  Snacks?: string,
+}
+
+interface WeeklyMealPlan {
+  [day: string]: DailyMealPlan;
+}
+
+interface MealPlanResponse {
+  mealPlan?: WeeklyMealPlan,
+  error?: string;
+}
+
+
+async function generateMealPlan(payload: MealPlanInput){
+  const response = await fetch("/api/generate-mealplan", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    const errorData: MealPlanResponse = await response.json();
+    throw new Error(errorData.error || "Failed to generate meal plan.");
+  }
+
+  return response.json();
+}
+
+
 export default function MealPlanDashboard() {
+
+  const {mutate, isPending, data, isSuccess} = useMutation<MealPlanResponse, Error, MealPlanInput>({
+    mutationFn: generateMealPlan,
+  })
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -26,7 +66,11 @@ export default function MealPlanDashboard() {
       days: 7,
     }
 
-    console.log(payload)
+    mutate(payload);
+  }
+
+  if(data){
+    console.log(data);
   }
 
   return (
@@ -109,9 +153,10 @@ export default function MealPlanDashboard() {
             <div>
               <button
                 type="submit"
+                disabled={isPending}
                 className="w-full bg-green-600 text-white font-semibold py-2 px-4 rounded-xl hover:bg-green-700 transition duration-200"
               >
-                Generate Meal Plan
+                { isPending? "Generating..." : "Generate Meal Plan"}
               </button>
             </div>
           </form>
@@ -120,9 +165,18 @@ export default function MealPlanDashboard() {
         {/* Meal Plan Section */}
         <div className="bg-green-50 shadow-inner rounded-2xl p-8 border border-green-200">
           <h1 className="text-3xl font-bold mb-4 text-green-700">Weekly Meal Plan</h1>
-          <p className="text-green-700 italic">
-            Your personalized meal plan will appear here after submission.
-          </p>
+          {isPending ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="h-10 w-10">
+                <Spinner />
+              </div>
+            </div>
+          ) : data?.mealPlan && isSuccess ? (
+            <div>{/* Render meal plan here later */}</div>
+          ) : (
+            <p className="text-center text-gray-500">Please generate a meal plan.</p>
+          )}
+
         </div>
       </div>
     </div>

@@ -46,7 +46,7 @@ NomNom Planner uses a **modular AI tool design**, meaning you can easily plug in
 
 | Layer | Tech |
 |------|------|
-| Frontend | Next.js (App Router), React, Tailwind CSS |
+| Frontend | Next.js (App Router), React, TypeScript Tailwind CSS |
 | Backend | API Routes (Edge & Serverless support) |
 | Auth | [Clerk.dev](https://clerk.dev) |
 | Payments | [Stripe](https://stripe.com) + Webhooks |

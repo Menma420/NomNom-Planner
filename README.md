@@ -132,7 +132,7 @@ Want to expand the platform?
 
 If you enjoyed this or want to contribute, reach out:
 
-- [LinkedIn][(https://linkedin.com](https://www.linkedin.com/in/uttkarsh-malviya-373231130/)
+- [Uttkarsh Malviya](https://www.linkedin.com/in/uttkarsh-malviya-373231130/)
 - [Menma420](https://github.com/Menma420)
 
 ---

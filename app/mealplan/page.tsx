@@ -1,7 +1,7 @@
 "use client"
 
 import { Spinner } from "@/components/spinner"
-import { useMutation } from "@tanstack/react-query"
+import { dataTagSymbol, useMutation } from "@tanstack/react-query"
 import { FormEvent } from "react"
 
 interface MealPlanInput {
@@ -69,8 +69,23 @@ export default function MealPlanDashboard() {
     mutate(payload);
   }
 
-  if(data){
-    console.log(data);
+  const daysOfTheWeek = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+  
+  const getMealPlanForDay = (day: string): DailyMealPlan | undefined => {
+
+    if(!data?.mealPlan){
+      return undefined;
+    }
+
+    return data?.mealPlan[day];
   }
 
   return (
@@ -172,7 +187,43 @@ export default function MealPlanDashboard() {
               </div>
             </div>
           ) : data?.mealPlan && isSuccess ? (
-            <div>{/* Render meal plan here later */}</div>
+            <div>
+              <div>
+                {daysOfTheWeek.map((day, key) => {
+                  const mealplan = getMealPlanForDay(day)
+                  return (
+                    <div key={key} className="mb-6">
+  <h3 className="text-xl font-semibold text-green-700 mb-2">{day}</h3>
+  {mealplan ? (
+    <div className="space-y-2 p-4 bg-white border border-green-200 rounded-xl shadow-sm">
+      <div>
+        <span className="font-medium text-green-800">Breakfast:</span>{" "}
+        <span className="text-green-900">{mealplan.Breakfast}</span>
+      </div>
+      <div>
+        <span className="font-medium text-green-800">Lunch:</span>{" "}
+        <span className="text-green-900">{mealplan.Lunch}</span>
+      </div>
+      <div>
+        <span className="font-medium text-green-800">Dinner:</span>{" "}
+        <span className="text-green-900">{mealplan.Dinner}</span>
+      </div>
+      {mealplan.Snacks && (
+        <div>
+          <span className="font-medium text-green-800">Snacks:</span>{" "}
+          <span className="text-green-900">{mealplan.Snacks}</span>
+        </div>
+      )}
+    </div>
+  ) : (
+    <p className="text-sm text-gray-500">No meal plan available.</p>
+  )}
+</div>
+
+                  )
+                })}
+              </div>
+            </div>
           ) : (
             <p className="text-center text-gray-500">Please generate a meal plan.</p>
           )}

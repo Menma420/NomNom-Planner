@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin");
+
+    console.log(baseUrl);
+
     const { planType, userId, email } = await request.json();
     console.log("Checkout Request Body:", { planType, userId, email });    
 
@@ -44,8 +48,8 @@ export async function POST(request: NextRequest) {
       customer_email: email,
       mode: "subscription",
       metadata: { clerkUserId: userId, planType },
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/subscribe`,
+      success_url: `${baseUrl}/?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/subscribe`,
     });
 
     return NextResponse.json({ url: session.url });

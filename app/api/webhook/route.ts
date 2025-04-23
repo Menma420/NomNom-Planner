@@ -2,8 +2,6 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma"; // or wherever your prisma client is
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { use } from "react";
-import { error } from "console";
 
 export async function POST(request: NextRequest){
     const body = await request.text();

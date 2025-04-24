@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   try {
+    console.log("🛠️ DATABASE_URL:", process.env.DATABASE_URL);
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 

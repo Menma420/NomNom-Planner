@@ -49,7 +49,7 @@ export async function POST(request: NextRequest){
     `;
 
     const response = await openAI.chat.completions.create({
-        model:"meta-llama/llama-4-maverick:free",
+      model: "openai/gpt-3.5-turbo",
         messages: [
             {
                 role: "user",

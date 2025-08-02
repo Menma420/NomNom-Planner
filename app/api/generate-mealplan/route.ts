@@ -2,16 +2,20 @@ import { NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
 import { parse } from "path";
 
+// Initialize OpenAI client with OpenRouter API
 const openAI = new OpenAI({
     apiKey: process.env.OPEN_ROUTER_API_KEY,
     baseURL: "https://openrouter.ai/api/v1",
 })
 
+// API endpoint to generate personalized meal plans using AI
 export async function POST(request: NextRequest){
     try{
 
+        // Extract user preferences from request body
         const {dietType, calories, allergies, cuisines,snacks, days } = await request.json();
 
+        // Construct detailed prompt for AI nutritionist
         const prompt = `
       You are a professional nutritionist. Create a ${days}-day meal plan for an individual following a ${dietType} diet aiming for ${calories} calories per day.
       
@@ -48,6 +52,7 @@ export async function POST(request: NextRequest){
       Return just the json with no extra commentaries and no backticks.
     `;
 
+    // Call OpenAI API to generate meal plan
     const response = await openAI.chat.completions.create({
       model: "openai/gpt-3.5-turbo",
         messages: [
@@ -56,7 +61,7 @@ export async function POST(request: NextRequest){
                 content: prompt,
             },
         ],
-        temperature: 0.7,
+        temperature: 0.7, // Controls creativity vs consistency
         max_tokens: 1500,
     })
 
@@ -64,6 +69,7 @@ export async function POST(request: NextRequest){
 
     let parsedMealPlan: {[day: string]: DailyMealPlan};
 
+    // Parse and validate AI response
     try{
         if (!aiContent) {
             return NextResponse.json(
@@ -79,6 +85,7 @@ export async function POST(request: NextRequest){
         return NextResponse.json({error: "Failed to parse mealplan. PLease try again."}, {status: 500});
     }
 
+    // Validate parsed meal plan structure
     if(typeof parsedMealPlan !== "object" || parsedMealPlan === null){
         return NextResponse.json({error: "Failed to parse mealplan. PLease try again."}, {status: 500});
     }
@@ -92,6 +99,7 @@ export async function POST(request: NextRequest){
 }
 
 
+// TypeScript interface for daily meal structure
 interface DailyMealPlan {
     Breakfast?: string,
     Lunch?: string,

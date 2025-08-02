@@ -9,11 +9,13 @@ import { availablePlans } from "@/lib/plans";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+// API function to fetch user's subscription status
 async function fetchSubscriptionStatus() {
   const response = await fetch("/api/profile/subscription-status");
   return response.json();
 }
 
+// API function to update user's subscription plan
 async function updatePlan(newplan: string) {
   const response = await fetch("/api/profile/change-plan", {
     method: "POST",
@@ -23,6 +25,7 @@ async function updatePlan(newplan: string) {
   return response.json();
 }
 
+// API function to cancel user's subscription
 async function unSubscribe() {
     const response = await fetch("/api/profile/unsubscribe", {
       method: "POST",
@@ -33,11 +36,13 @@ async function unSubscribe() {
 
 export default function Profile() {
 
+  // Local state for selected plan in dropdown
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const { isLoaded, isSignedIn, user } = useUser();
   const queryClient = useQueryClient();
   const router = useRouter();
 
+  // Fetch user's subscription data with caching
   const {
     data: subscription,
     isLoading,
@@ -47,10 +52,11 @@ export default function Profile() {
   } = useQuery({
     queryKey: ["subscription"],
     queryFn: fetchSubscriptionStatus,
-    enabled: isLoaded && isSignedIn,
-    staleTime: 5 * 60 * 1000,
+    enabled: isLoaded && isSignedIn, // Only fetch when user is authenticated
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
+  // Mutation for updating subscription plan with optimistic UI feedback
   const {
     data: updatedPlan,
     mutate: updatePlanMutation,
@@ -59,14 +65,14 @@ export default function Profile() {
     mutationFn: updatePlan,
     onSuccess: () => {
       toast.success("subscription plan updated successfully!");
-      refetch();
+      refetch(); // Refresh subscription data after successful update
     },
     onError: () => {
       toast.error("Failed to update the plan.");
     },
   });
 
-
+  // Mutation for canceling subscription with redirect on success
   const {
     data: canceledPlan,
     mutate: unsubscribeMutation,
@@ -74,31 +80,35 @@ export default function Profile() {
   } = useMutation({
     mutationFn: unSubscribe,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["subscription"]});
-      router.push("/subscribe");
+      queryClient.invalidateQueries({queryKey: ["subscription"]}); // Clear cached data
+      router.push("/subscribe"); // Redirect to subscription page
     },
     onError: () => {
       toast.error("Error unsubscribing.");
     },
   });
 
+  // Find current plan details from available plans
   const currentPlan = availablePlans.find(
     (plan) => plan.interval === subscription?.subscription.subscriptionTier
   );
 
+  // Handle plan update with validation
   function handleUpdatePlan() {
     if (selectedPlan) {
       updatePlanMutation(selectedPlan);
-      setSelectedPlan("");
+      setSelectedPlan(""); // Reset dropdown selection
     }
   }
 
+  // Handle subscription cancellation with confirmation
   function handleUnsubscribe(){
     if(confirm("Are you sure you want to unsubscribe? You will lose access to premium features.")){
         unsubscribeMutation();
     }
   }
 
+  // Loading state while Clerk is initializing
   if (!isLoaded) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-2">
@@ -108,6 +118,7 @@ export default function Profile() {
     );
   }
 
+  // Redirect if user is not signed in
   if (!isSignedIn) {
     return (
       <div className="text-center py-10">
@@ -120,7 +131,7 @@ export default function Profile() {
     <div className="pt-24 px-6 md:px-12 bg-white min-h-screen text-green-900">
       <Toaster position="top-center" />
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* User Profile Card */}
+        {/* User Profile Card - Display user info from Clerk */}
         <div className="bg-green-50 rounded-2xl border border-green-200 shadow p-6 md:p-10 flex flex-col md:flex-row items-center md:items-start gap-6">
           {user.imageUrl && (
             <Image
@@ -141,7 +152,7 @@ export default function Profile() {
           </div>
         </div>
   
-        {/* Subscription Details */}
+        {/* Subscription Details - Show current plan status */}
         <div className="bg-green-100 rounded-2xl border border-green-300 shadow p-6 md:p-10">
           <h2 className="text-xl font-semibold mb-4 text-green-800">Subscription Details</h2>
           {isLoading ? (
@@ -173,7 +184,7 @@ export default function Profile() {
           )}
         </div>
   
-        {/* Change Plan */}
+        {/* Change Plan - Dropdown to switch subscription plans */}
         <div className="bg-green-50 rounded-2xl border border-green-200 shadow p-6 md:p-10">
           <h3 className="text-lg font-semibold text-green-800 mb-4">Change Subscription Plan</h3>
   
@@ -182,7 +193,7 @@ export default function Profile() {
               <select
                 className="w-full border border-green-300 rounded-xl px-4 py-2 text-green-800 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 defaultValue={currentPlan.interval}
-                disabled={isUpdatePlanPending}
+                disabled={isUpdatePlanPending} // Disable during API call
                 onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
                   setSelectedPlan(event.target.value)
                 }
@@ -202,13 +213,14 @@ export default function Profile() {
                 disabled={
                   isUpdatePlanPending ||
                   !selectedPlan ||
-                  selectedPlan === currentPlan.interval
+                  selectedPlan === currentPlan.interval // Prevent updating to same plan
                 }
                 className="mt-4 px-6 py-2 rounded-xl bg-green-600 text-white font-medium hover:bg-green-700 transition disabled:bg-green-300 disabled:cursor-not-allowed"
               >
                 Save Changes
               </button>
   
+              {/* Loading indicator during plan update */}
               {isUpdatePlanPending && (
                 <div className="flex items-center gap-2 mt-3 text-green-700">
                   <Spinner />
@@ -219,7 +231,7 @@ export default function Profile() {
           )}
         </div>
   
-        {/* Unsubscribe Section */}
+        {/* Unsubscribe Section - Cancel subscription with confirmation */}
         <div className="bg-green-100 rounded-2xl border border-green-300 shadow p-6 md:p-10">
           <h3 className="text-lg font-semibold text-green-800 mb-4">Unsubscribe</h3>
           <p className="text-sm text-green-700 mb-4">
@@ -227,7 +239,7 @@ export default function Profile() {
           </p>
           <button
             onClick={handleUnsubscribe}
-            disabled={isUnsubscribePending}
+            disabled={isUnsubscribePending} // Disable during API call
             className="px-6 py-2 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition disabled:bg-red-300 disabled:cursor-not-allowed"
           >
             {isUnsubscribePending ? "Unsubscribing..." : "Unsubscribe"}

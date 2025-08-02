@@ -4,6 +4,7 @@ import { Spinner } from "@/components/spinner"
 import { dataTagSymbol, useMutation } from "@tanstack/react-query"
 import { FormEvent } from "react"
 
+// TypeScript interfaces for meal plan data structure
 interface MealPlanInput {
   dietType: string
   calories: number
@@ -29,7 +30,7 @@ interface MealPlanResponse {
   error?: string;
 }
 
-
+// API function to generate meal plan using AI
 async function generateMealPlan(payload: MealPlanInput){
   const response = await fetch("/api/generate-mealplan", {
     method: "POST",
@@ -45,30 +46,34 @@ async function generateMealPlan(payload: MealPlanInput){
   return response.json();
 }
 
-
+// Main meal plan dashboard component
 export default function MealPlanDashboard() {
 
+  // React Query mutation for meal plan generation
   const {mutate, isPending, data, isSuccess} = useMutation<MealPlanResponse, Error, MealPlanInput>({
     mutationFn: generateMealPlan,
   })
 
+  // Handle form submission and extract user preferences
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const formData = new FormData(event.currentTarget)
 
+    // Build payload from form data with defaults
     const payload: MealPlanInput = {
       dietType: formData.get("dietType")?.toString() || "",
       calories: Number(formData.get("calories")) || 2000,
       allergies: formData.get("allergies")?.toString() || "",
       cuisines: formData.get("cuisines")?.toString() || "",
       snacks: formData.get("snacks")?.toString() || "",
-      days: 7,
+      days: 7, // Fixed 7-day meal plan
     }
 
     mutate(payload);
   }
 
+  // Array of weekdays for meal plan display
   const daysOfTheWeek = [
     "Monday",
     "Tuesday",
@@ -79,6 +84,7 @@ export default function MealPlanDashboard() {
     "Sunday",
   ];
   
+  // Helper function to get meal plan for specific day
   const getMealPlanForDay = (day: string): DailyMealPlan | undefined => {
 
     if(!data?.mealPlan){
@@ -91,7 +97,7 @@ export default function MealPlanDashboard() {
   return (
     <div className="pt-24 px-8 bg-white min-h-screen text-green-900">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
-        {/* Form Section */}
+        {/* Meal Plan Form - Collect user preferences */}
         <div className="bg-white shadow-md rounded-2xl p-8 border border-green-200">
           <h1 className="text-3xl font-bold mb-6 text-green-700">AI Meal Generator</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -177,16 +183,18 @@ export default function MealPlanDashboard() {
           </form>
         </div>
 
-        {/* Meal Plan Section */}
+        {/* Meal Plan Display - Show generated weekly meal plan */}
         <div className="bg-green-50 shadow-inner rounded-2xl p-8 border border-green-200">
           <h1 className="text-3xl font-bold mb-4 text-green-700">Weekly Meal Plan</h1>
           {isPending ? (
+            // Loading state while AI generates meal plan
             <div className="flex justify-center items-center h-32">
               <div className="h-10 w-10">
                 <Spinner />
               </div>
             </div>
           ) : data?.mealPlan && isSuccess ? (
+            // Display generated meal plan for each day
             <div>
               <div>
                 {daysOfTheWeek.map((day, key) => {
@@ -195,6 +203,7 @@ export default function MealPlanDashboard() {
                     <div key={key} className="mb-6">
   <h3 className="text-xl font-semibold text-green-700 mb-2">{day}</h3>
   {mealplan ? (
+    // Display meals for the day
     <div className="space-y-2 p-4 bg-white border border-green-200 rounded-xl shadow-sm">
       <div>
         <span className="font-medium text-green-800">Breakfast:</span>{" "}
@@ -225,6 +234,7 @@ export default function MealPlanDashboard() {
               </div>
             </div>
           ) : (
+            // Initial state - prompt user to generate meal plan
             <p className="text-center text-gray-500">Please generate a meal plan.</p>
           )}
 

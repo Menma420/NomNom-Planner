@@ -1,4 +1,4 @@
-
+// TypeScript interface for subscription plan structure
 export interface Plan {
     name: string;
     amount: number;
@@ -9,6 +9,7 @@ export interface Plan {
     features: string[];
 }
 
+// Available subscription plans with pricing and features
 export const availablePlans:Plan[] = [
     {
         name: "Weekly Plan",
@@ -27,7 +28,7 @@ export const availablePlans:Plan[] = [
         amount: 39.99,
         currency: "USD",
         interval: "month",
-        isPopular: true,
+        isPopular: true, // Highlighted as popular choice
         description: "Perfect for ongoing, month-to-month meal planning and features",
         features: [
             "Unlimited AI Meal Plans",
@@ -49,12 +50,14 @@ export const availablePlans:Plan[] = [
     },
 ]
 
+// Map plan intervals to Stripe price IDs for checkout
 const priceIDMap: Record<string,string> = {
     week:process.env.STRIPE_PRICE_WEEKLY!,
     month:process.env.STRIPE_PRICE_MONTHLY!,
     year:process.env.STRIPE_PRICE_YEARLY!,
 }
 
+// Helper function to get Stripe price ID from plan type
 export const getPriceIDFromType = (planType: string) => {
     return priceIDMap[planType]
 }

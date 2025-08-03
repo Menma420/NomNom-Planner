@@ -16,11 +16,13 @@
     "@clerk/nextjs": "^6.12.12",
     "@prisma/client": "^6.5.0",
     "@tanstack/react-query": "^5.70.0",
+    "ioredis": "^5.7.0",
     "next": "15.2.4",
     "openai": "^4.93.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
+    "redis": "^5.7.0",
     "stripe": "^17.7.0"
   },
   "devDependencies": {

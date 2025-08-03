@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
 import { parse } from "path";
+import { CacheService, CACHE_TTL, PerformanceMonitor } from "@/lib/redis";
 
 // Initialize OpenAI client with OpenRouter API
 const openAI = new OpenAI({
@@ -8,12 +9,31 @@ const openAI = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
 })
 
+// Initialize cache service and performance monitor
+const cacheService = new CacheService();
+const performanceMonitor = new PerformanceMonitor();
+
 // API endpoint to generate personalized meal plans using AI
 export async function POST(request: NextRequest){
+    const startTime = Date.now();
+    
     try{
 
         // Extract user preferences from request body
         const {dietType, calories, allergies, cuisines,snacks, days } = await request.json();
+
+        // Create cache key based on user preferences
+        const cacheKey = `mealplan:${dietType}:${calories}:${allergies}:${cuisines}:${snacks}:${days}`;
+
+        // Check cache first
+        const cachedMealPlan = await cacheService.get(cacheKey);
+        if (cachedMealPlan) {
+            return NextResponse.json({
+                mealPlan: cachedMealPlan,
+                cached: true,
+                responseTime: Date.now() - startTime
+            });
+        }
 
         // Construct detailed prompt for AI nutritionist
         const prompt = `
@@ -90,7 +110,14 @@ export async function POST(request: NextRequest){
         return NextResponse.json({error: "Failed to parse mealplan. PLease try again."}, {status: 500});
     }
 
-    return NextResponse.json({mealPlan: parsedMealPlan});
+    // Cache the generated meal plan for 1 hour
+    await cacheService.set(cacheKey, parsedMealPlan, CACHE_TTL.LONG);
+
+    return NextResponse.json({
+        mealPlan: parsedMealPlan,
+        cached: false,
+        responseTime: Date.now() - startTime
+    });
 
     }catch(error: any){
         // console.log(error);

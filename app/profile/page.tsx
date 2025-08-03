@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { availablePlans } from "@/lib/plans";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import PerformanceMonitor from "@/components/performance-monitor";
 
 // API function to fetch user's subscription status
 async function fetchSubscriptionStatus() {
@@ -244,6 +245,12 @@ export default function Profile() {
           >
             {isUnsubscribePending ? "Unsubscribing..." : "Unsubscribe"}
           </button>
+        </div>
+
+        {/* Performance Monitor - Cache statistics and management */}
+        <div className="bg-blue-50 rounded-2xl border border-blue-200 shadow p-6 md:p-10">
+          <h3 className="text-lg font-semibold text-blue-800 mb-4">Performance Monitor</h3>
+          <PerformanceMonitor />
         </div>
       </div>
     </div>

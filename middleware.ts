@@ -9,6 +9,8 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhook(.*)",
   "/api/check-subscription(.*)",
   "/api/generate-mealplan(.*)",
+  "/api/cache(.*)",
+  "/api/test-redis(.*)",
 ]);
 
 // Define sign-up routes for redirect logic
